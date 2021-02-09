@@ -7,7 +7,7 @@ namespace MmoooPlugin.Shared
         //client only
         public static Vector2 MovePlayer(NetworkingData.PlayerInputData input, Vector2 position, float timeStep)
         {
-            Vector2 moveDirection = new Vector2(0, 0);
+            Vector2 moveDirection = Vector2.Zero;
 
             bool w = input.Keyinputs[0];
             bool a = input.Keyinputs[1];

@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using DarkRift;
 using DarkRift.Client;
 using MmoooPlugin.Shared;
 using UnityEngine;
+using Object = System.Object;
+using Vector2 = System.Numerics.Vector2;
 
 public class GameManager : MonoBehaviour
 {
@@ -87,7 +91,7 @@ public class GameManager : MonoBehaviour
         GameObject go = Instantiate(PlayerPrefab);
         ClientPlayer player = go.GetComponent<ClientPlayer>();
         player.Prefab = go;
-        player.Initialize(data.Id, data.Name, new Vector2(data.Position.X, data.Position.Y));
+        player.Initialize(data.Id, data.Name, data.Position.X, data.Position.Y);
         players.Add(data.Id, player);
         Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
     }
@@ -104,8 +108,29 @@ public class GameManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        ClientTick++;
+        processServerUpdates();
+
+        processInputs();
+
+        //TODO this is hard to follow because ClientPlayer.positionBuffer alternates between timestamp and position. but making a bunch of objects is super wasteful...
         
+        interpolateEntities();
+
+        ClientTick++;
+    }
+
+    private void processInputs()
+    {
+        //TODO refactor?  this is "processInputs"
+        ClientPlayer thisPlayer;
+        if(players.TryGetValue(ConnectionManager.Instance.PlayerId, out thisPlayer))
+        {
+            thisPlayer.processInputs();
+        }
+    }
+
+    private void processServerUpdates()
+    {
         if (worldUpdateBuffer.Count > 0)
         {
             int numUpdates = worldUpdateBuffer.Count;
@@ -122,9 +147,7 @@ public class GameManager : MonoBehaviour
                     {
                         if (playerState.Id == ConnectionManager.Instance.PlayerId)
                         {
-                            System.Numerics.Vector2 newPos = playerState.Position;
-                            
-                            //Debug.Log($"server says my positon is {playerState.Position.X}, {playerState.Position.Y}");
+                            //Debug.Log($"server position {playerState.Position.X}, {playerState.Position.Y} local position: {player.transform.localPosition.x}, {player.transform.localPosition.y}");
                             
                             for (int x = 0; x < player.pendingInputs.Count; x++)
                             {
@@ -135,16 +158,24 @@ public class GameManager : MonoBehaviour
                                 else
                                 {
                                     NetworkingData.PlayerInputData inputData = player.pendingInputs.Dequeue();
-                                    newPos = PlayerMovement.MovePlayer(inputData, newPos, Time.deltaTime);
+
+                                    player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
                                 }
                             }
-                            
-                            player.transform.position = new Vector3(newPos.X, newPos.Y,0);
+
+                            //TODO snap player back if position isn't too far diverged from server
+                            //if (Vector2.Distance(newPos, new Vector2(player.transform.localPosition.x, player.transform.localPosition.y)) > 0.05f)
+                            //{
+                            //}
                         }
                         else
-                        { 
-                            player.transform.localPosition = new Vector3(playerState.Position.X, 
-                            playerState.Position.Y, 0);
+                        {
+                            player.transformPosition.X = playerState.Position.X;
+                            player.transformPosition.Y =  playerState.Position.Y; 
+                            
+                            //interpolation?
+                            player.positionBuffer.Enqueue(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
+                            player.positionBuffer.Enqueue(playerState.Position);
                         }
                     }
                     else
@@ -153,6 +184,61 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
+            
+        }
+    }
+
+    private void interpolateEntities()
+    {
+        //TODO refactor: this is really hard to follow because our buffer is holding alternating datatypes
+        long renderTimestamp = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+        
+        foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
+        {
+            ClientPlayer p = kv.Value;
+                
+            //interpolate everyone but myself
+            if(p.id != ConnectionManager.Instance.PlayerId)
+            {
+                Queue<System.Object> posBuffer = kv.Value.positionBuffer;
+                int max = posBuffer.Count;
+                for (int i = 0; i < max; i = i + 2)
+                {
+                    if (max >= 4 && (long)posBuffer.Peek() < renderTimestamp)
+                    {
+                        posBuffer.Dequeue();
+                        posBuffer.Dequeue();
+                    }
+                }
+
+                if (posBuffer.Count > 4 && (long)posBuffer.Peek() <= renderTimestamp)
+                {
+                    var ts1 = (long) posBuffer.Dequeue();
+                    Vector2 pos1 = (Vector2) posBuffer.Dequeue();
+                    
+                    if (renderTimestamp <= (long) posBuffer.Peek())
+                    {
+                        var ts2 = (long) posBuffer.Dequeue();
+                        Vector2 pos2 = (Vector2) posBuffer.Dequeue();
+
+                        if (!pos1.Equals(pos2))
+                        {
+                            long t = ts2 - ts1;
+                            p.transformPosition = Vector2.Lerp(pos1, pos2, t);
+                        }
+                    }
+                }
+            }
+            
+            //actually set the position for this player
+            p.transform.localPosition = new Vector3(p.transformPosition.X, p.transformPosition.Y);
+        }
+        
+        //finally, move myself (why here? will we interpolate server snapbacks? probably?)
+        ClientPlayer player;
+        if (players.TryGetValue(ConnectionManager.Instance.PlayerId, out player))
+        {
+            player.transform.localPosition = new Vector3(player.transformPosition.X, player.transformPosition.Y, 0);
         }
     }
 }
