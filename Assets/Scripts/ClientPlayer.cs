@@ -1,97 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
+using MmoooPlugin.Shared;
 using UnityEngine;
 
-struct ReconciliationInfo
-{
-    public uint Frame;
-    public NetworkingData.PlayerStateData Data;
-    public NetworkingData.PlayerInputData Input;
-    
-    public ReconciliationInfo(uint frame, NetworkingData.PlayerStateData data, NetworkingData.PlayerInputData input)
-    {
-        Frame = frame;
-        Data = data;
-        Input = input;
-    }
-}
-
-[RequireComponent(typeof(PlayerLogic))]
-[RequireComponent(typeof(PlayerInterpolation))]
 public class ClientPlayer : MonoBehaviour
 {
-    private PlayerLogic playerLogic;
-    private PlayerInterpolation interpolation;
-    private Queue<ReconciliationInfo> reconciliationHistory = new Queue<ReconciliationInfo>();
-    
     private ushort id;
     private string playerName;
     private bool isOwn;
+    private ushort inputSeq = 0;
+    public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
 
-    private int health;
-    
-    private float moveSpeed = 40f;
-    private Vector2 moveDirection;
+    private NetworkingData.PlayerStateData PlayerPosition;
 
-    private bool stopSent = false;
-    
-    [Header("Settings")]
-    [SerializeField]
-    private float sensitivityX;
-    [SerializeField]
-    private float sensitivityY;
-    
-    void Awake()
-    {
-        playerLogic = GetComponent<PlayerLogic>();
-        interpolation = GetComponent<PlayerInterpolation>();
-    }
+    public GameObject Prefab;
     
     public void Initialize(ushort id, string playerName, Vector2 position)
     {
         this.id = id;
         this.playerName = playerName;
-        //NameText.text = this.playerName;
+        
         if (ConnectionManager.Instance.PlayerId == id)
         {
             Debug.Log($"Initializing our player {playerName} with client id ({id})");
             isOwn = true;
-            
-            interpolation.CurrentData = new NetworkingData.PlayerStateData(id, position, 0 );
-        }
-    }
-    
-    public void OnServerDataUpdate(NetworkingData.PlayerStateData data)
-    {
-        if (isOwn)
-        {
-            Debug.Log($"server says your position is: {data.Position.x}, {data.Position.y}");
-            while (reconciliationHistory.Any() && reconciliationHistory.Peek().Frame < GameManager.Instance.LastReceivedServerTick)
-            {
-                reconciliationHistory.Dequeue();
-            }
-
-            if (reconciliationHistory.Any() && reconciliationHistory.Peek().Frame == GameManager.Instance.LastReceivedServerTick)
-            {
-                ReconciliationInfo info = reconciliationHistory.Dequeue();
-                if (Vector3.Distance(new Vector3(info.Data.Position.x, info.Data.Position.y, 0),  new Vector3(data.Position.x, data.Position.y, 0)) > 0.05f)
-                {
-
-                    List<ReconciliationInfo> infos = reconciliationHistory.ToList();
-                    interpolation.CurrentData = data;
-                    transform.position = new Vector3(data.Position.x, data.Position.y, 0);
-                    for (int i = 0; i < infos.Count; i++)
-                    {
-                        NetworkingData.PlayerStateData u = playerLogic.GetNextFrameData(interpolation.CurrentData.Id, infos[i].Input);
-                        interpolation.SetFramePosition(u);
-                    }
-                }
-            }
-        }
-        else
-        {
-            interpolation.SetFramePosition(data);
         }
     }
 
@@ -99,43 +33,34 @@ public class ClientPlayer : MonoBehaviour
     {
         if (isOwn)
         {
-            bool[] inputs = new bool[6];
+            bool[] inputs = new bool[5];
             inputs[0] = Input.GetKey(KeyCode.W);
             inputs[1] = Input.GetKey(KeyCode.A);
             inputs[2] = Input.GetKey(KeyCode.S);
             inputs[3] = Input.GetKey(KeyCode.D);
             inputs[4] = Input.GetKey(KeyCode.Space);
             
-            NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, 0, 0);
+            NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, 0, inputSeq);
 
-            /*if (inputs.Contains(true))
+            System.Numerics.Vector2 newPos = PlayerMovement.MovePlayer(inputData, new System.Numerics.Vector2(transform.position.x, transform.position.y), Time.deltaTime);
+
+            if (newPos.X != transform.position.x || newPos.Y != transform.position.y)
             {
-                stopSent = false;
-            */   
-                transform.position =
-                    new Vector3(interpolation.CurrentData.Position.x, interpolation.CurrentData.Position.y, 0);
-                NetworkingData.PlayerStateData nextStateData = playerLogic.GetNextFrameData(interpolation.CurrentData.Id, inputData);
-                interpolation.SetFramePosition(nextStateData);
+                transform.position = new Vector3(newPos.X, newPos.Y, 0);
+                //Debug.Log($"position: {transform.position.x}, {transform.position.y}");
+            }
 
-                //Debug.Log($"[{interpolation.CurrentData.Position.X}, {interpolation.CurrentData.Position.Y}] => [{nextStateData.Position.X}, {nextStateData.Position.Y}]");
-
-                using (Message message = Message.Create((ushort) NetworkingData.Tags.GamePlayerInput, inputData))
+            if(inputs.Contains(true)) {
+                pendingInputs.Enqueue(inputData);
+                
+                using (Message message = Message.Create((ushort) NetworkingData.Tags.PlayerInput, inputData))
                 {
+                    //NOTE uncomment if you want to see the last input sequence number sent by the client: Debug.Log($"last sent input sequence number: {inputData.InputSeq}");
                     ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
                 }
-            /*}
-            else
-            {
-                if (!stopSent)
-                {
-                    using (Message message = Message.Create((ushort) NetworkingData.Tags.GamePlayerInput, inputData))
-                    {
-                        Debug.Log("sending stop");
-                        ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
-                    }
-                    stopSent = true;
-                }
-            }*/
+                
+                inputSeq++;
+            }
         }
     }
 }

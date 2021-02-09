@@ -1,5 +1,7 @@
-﻿using DarkRift;
-using UnityEngine;
+﻿using System;
+using System.Linq;
+using DarkRift;
+using Vector2 = System.Numerics.Vector2;
 
 public class NetworkingData
 {
@@ -11,7 +13,9 @@ public class NetworkingData
         PlayerReady = 3,
         GameStartData = 100,
         GameUpdate = 200,
-        GamePlayerInput = 203
+        PlayerInput = 203,
+        PlayerSpawn = 300,
+        PlayerDeSpawn = 301
     }
 
     
@@ -78,26 +82,22 @@ public class NetworkingData
     
     public struct PlayerInputData : IDarkRiftSerializable
     {
-        public bool[] Keyinputs; // 0 = w, 1 = a, 2 = s, 3 = d, 4 = space, 5 = leftClick
+        public bool[] Keyinputs;
         public byte LookDirection;
-        public uint Time;
+        public uint InputSeq;
  
-        public PlayerInputData(bool[] keyInputs, byte lookDirection, uint time)
+        public PlayerInputData(bool[] keyInputs, byte lookDirection, uint inputSeq)
         {
             Keyinputs = keyInputs;
             LookDirection = lookDirection;
-            Time = time;
+            InputSeq = inputSeq;
         }
  
         public void Deserialize(DeserializeEvent e)
         {
             Keyinputs = e.Reader.ReadBooleans();
             LookDirection = e.Reader.ReadByte();
- 
-            if (Keyinputs[5])
-            {
-                Time = e.Reader.ReadUInt32();
-            }
+            InputSeq = e.Reader.ReadUInt32();
         }
  
         public void Serialize(SerializeEvent e)
@@ -105,11 +105,7 @@ public class NetworkingData
  
             e.Writer.Write(Keyinputs);
             e.Writer.Write(LookDirection);
- 
-            if (Keyinputs[5])
-            {
-                e.Writer.Write(Time);
-            }
+            e.Writer.Write(InputSeq);
         }
     }
     
@@ -118,27 +114,31 @@ public class NetworkingData
         public ushort Id;
         public Vector2 Position;
         public byte LookDirection;
+        public uint LastProcessedInput;
 
-        public PlayerStateData(ushort id, Vector2 position, byte lookDirection)
+        public PlayerStateData(ushort id, Vector2 position, byte lookDirection, uint lastProcessedInput)
         {
             Id = id;
             Position = position;
             LookDirection = lookDirection;
+            LastProcessedInput = lastProcessedInput;
         }
 
         public void Deserialize(DeserializeEvent e)
         {
+            Id = e.Reader.ReadUInt16();
             Position = new Vector2(e.Reader.ReadSingle(), e.Reader.ReadSingle());
             LookDirection = e.Reader.ReadByte();
-            Id = e.Reader.ReadUInt16();
+            LastProcessedInput = e.Reader.ReadUInt32();
         }
 
         public void Serialize(SerializeEvent e)
         {
-            e.Writer.Write(Position.x);
-            e.Writer.Write(Position.y);
-            e.Writer.Write(LookDirection);
             e.Writer.Write(Id);
+            e.Writer.Write(Position.X);
+            e.Writer.Write(Position.Y);
+            e.Writer.Write(LookDirection);
+            e.Writer.Write(LastProcessedInput);
         }
     }
     
@@ -166,8 +166,13 @@ public class NetworkingData
         {
             e.Writer.Write(Id);
             e.Writer.Write(Name);
-            e.Writer.Write(Position.x);
-            e.Writer.Write(Position.y);
+            e.Writer.Write(Position.X);
+            e.Writer.Write(Position.Y);
+        }
+
+        public String toString()
+        {
+            return $"";
         }
     }
 
@@ -193,33 +198,32 @@ public class NetworkingData
     
     public struct GameUpdateData : IDarkRiftSerializable
     {
-        public uint Frame;
-        public PlayerSpawnData[] SpawnData;
-        public PlayerDespawnData[] DespawnData;
         public PlayerStateData[] UpdateData;
 
-        public GameUpdateData(uint frame, PlayerStateData[] updateData, PlayerSpawnData[] spawnData, PlayerDespawnData[] despawnData)
+        public GameUpdateData(PlayerStateData[] updateData)
         {
-            Frame = frame;
-            UpdateData = updateData;
-            DespawnData = despawnData;
-            SpawnData = spawnData;
+            UpdateData = updateData; 
         }
 
         public void Deserialize(DeserializeEvent e)
         {
-            Frame = e.Reader.ReadUInt32();
-            SpawnData = e.Reader.ReadSerializables<PlayerSpawnData>();
-            DespawnData = e.Reader.ReadSerializables<PlayerDespawnData>();
             UpdateData = e.Reader.ReadSerializables<PlayerStateData>();
         }
 
         public void Serialize(SerializeEvent e)
         {
-            e.Writer.Write(Frame);
-            e.Writer.Write(SpawnData);
-            e.Writer.Write(DespawnData);
             e.Writer.Write(UpdateData);
+        }
+
+        public String toString()
+        {
+            String m = ""; //$"{MSGID} ";
+            foreach (PlayerStateData dat in UpdateData)
+            {
+                m += $"\n{dat.Id} {dat.Position.X}, {dat.Position.Y} {dat.LookDirection}, {dat.LastProcessedInput}";
+            }
+
+            return m;
         }
     }
     

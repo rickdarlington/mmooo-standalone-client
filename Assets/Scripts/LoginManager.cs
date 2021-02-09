@@ -46,6 +46,9 @@ public class LoginManager : MonoBehaviour
                     //ConnectionManager.Instance.Client.MessageReceived += OnMessage;
                     OnLoginAccept(message.Deserialize<NetworkingData.LoginInfoData>());
                     break;
+                case NetworkingData.Tags.PlayerSpawn:
+                    //TODO we shouldn't get this here.  server is sending early, disregard for now
+                    break;
                 default:
                     Debug.Log($"Unhandled tag in LoginManager.OnMessage: {message.Tag}");
                     break;

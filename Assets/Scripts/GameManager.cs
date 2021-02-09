@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using DarkRift;
 using DarkRift.Client;
+using MmoooPlugin.Shared;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -8,13 +9,19 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     private Dictionary<ushort, ClientPlayer> players = new Dictionary<ushort, ClientPlayer>();
-    private Buffer<NetworkingData.GameUpdateData> gameUpdateDataBuffer = new Buffer<NetworkingData.GameUpdateData>(1, 1);
+    
+    public Queue<NetworkingData.GameUpdateData> worldUpdateBuffer = new Queue<NetworkingData.GameUpdateData>();
 
     [Header("Prefabs")] public GameObject PlayerPrefab;
 
     public uint ClientTick { get; private set; }
     public uint LastReceivedServerTick { get; private set; }
-
+    
+    void OnDestroy()
+    {
+        Instance = null;
+    }
+    
     void Awake()
     {
         if (Instance != null)
@@ -49,18 +56,20 @@ public class GameManager : MonoBehaviour
                     OnGameStart(message.Deserialize<NetworkingData.GameStartData>());
                     break;
                 case NetworkingData.Tags.GameUpdate:
-                    OnGameUpdate(message.Deserialize<NetworkingData.GameUpdateData>());
+                    NetworkingData.GameUpdateData gameUpdateData = message.Deserialize<NetworkingData.GameUpdateData>();
+                    worldUpdateBuffer.Enqueue(gameUpdateData);
                     break;
-                default: 
+                case NetworkingData.Tags.PlayerSpawn:
+                    SpawnPlayer(message.Deserialize<NetworkingData.PlayerSpawnData>());
+                    break;
+                case NetworkingData.Tags.PlayerDeSpawn:
+                    DespawnPlayer(message.Deserialize<NetworkingData.PlayerDespawnData>().Id);
+                    break;
+                default:
                     Debug.Log($"Unhandled tag: {message.Tag}");
                     break;
             }
         }
-    }
-
-    void OnGameUpdate(NetworkingData.GameUpdateData data)
-    {
-        gameUpdateDataBuffer.Add(data);
     }
 
     void OnGameStart(NetworkingData.GameStartData data)
@@ -77,53 +86,74 @@ public class GameManager : MonoBehaviour
     {
         GameObject go = Instantiate(PlayerPrefab);
         ClientPlayer player = go.GetComponent<ClientPlayer>();
-        player.Initialize(data.Id, data.Name, data.Position);
+        player.Prefab = go;
+        player.Initialize(data.Id, data.Name, new Vector2(data.Position.X, data.Position.Y));
         players.Add(data.Id, player);
-        Debug.Log($"Spawn player {data.Name} at [{data.Position.x}, {data.Position.y}]");
+        Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
     }
 
-    void OnDestroy()
+    void DespawnPlayer(ushort id)
     {
-        Instance = null;
+        ClientPlayer player;
+        if (players.TryGetValue(id, out player))
+        {
+            Destroy(player.Prefab);
+            players.Remove(id);
+        }
     }
-    
-    
+
     void FixedUpdate()
     {
         ClientTick++;
-        NetworkingData.GameUpdateData[] receivedGameUpdateData = gameUpdateDataBuffer.Get();
-        foreach (NetworkingData.GameUpdateData data in receivedGameUpdateData)
+        
+        if (worldUpdateBuffer.Count > 0)
         {
-            UpdateClientGameState(data);
-        }
-    }
-
-    void UpdateClientGameState(NetworkingData.GameUpdateData gameUpdateData)
-    {
-        LastReceivedServerTick = gameUpdateData.Frame;
-        foreach (NetworkingData.PlayerSpawnData data in gameUpdateData.SpawnData)
-        {
-            if (data.Id != ConnectionManager.Instance.PlayerId)
+            int numUpdates = worldUpdateBuffer.Count;
+            for (int i = 0; i < numUpdates; i++)
             {
-                SpawnPlayer(data);
-            }
-        }
+                NetworkingData.GameUpdateData nextUpdate = worldUpdateBuffer.Dequeue();
+                
+                for(int j = 0; j < nextUpdate.UpdateData.Length; j++)
+                {
+                    NetworkingData.PlayerStateData playerState = nextUpdate.UpdateData[j];
 
-        foreach (NetworkingData.PlayerDespawnData data in gameUpdateData.DespawnData)
-        {
-            if (players.ContainsKey(data.Id))
-            {
-                Destroy(players[data.Id].gameObject);
-                players.Remove(data.Id);
-            }
-        }
-
-        foreach (NetworkingData.PlayerStateData data in gameUpdateData.UpdateData)
-        {
-            ClientPlayer p;
-            if (players.TryGetValue(data.Id, out p))
-            {
-                p.OnServerDataUpdate(data);
+                    ClientPlayer player;
+                    if(players.TryGetValue(playerState.Id, out player))
+                    {
+                        //TODO I don't actually understand this reconciliation logic.
+                        //TODO why apply the inputs if they've already been applied by client prediction?
+                        if (playerState.Id == ConnectionManager.Instance.PlayerId)
+                        {
+                            System.Numerics.Vector2 authPos = playerState.Position;
+                            
+                            //Debug.Log($"server says my positon is {playerState.Position.X}, {playerState.Position.Y}");
+                            
+                            for (int x = 0; x < player.pendingInputs.Count; x++)
+                            {
+                                if (player.pendingInputs.Peek().InputSeq < playerState.LastProcessedInput)
+                                {
+                                    player.pendingInputs.Dequeue();
+                                }
+                                else
+                                {
+                                    NetworkingData.PlayerInputData inputData = player.pendingInputs.Dequeue();
+                                    authPos = PlayerMovement.MovePlayer(inputData, authPos, Time.deltaTime);
+                                }
+                            }
+                            
+                            player.transform.position = new Vector3(authPos.X, authPos.Y,0);
+                        }
+                        else
+                        { 
+                            player.transform.localPosition = new Vector3(playerState.Position.X, 
+                            playerState.Position.Y, 0);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"ERROR got update for player (id:{playerState.Id}, {playerState.Position.X}, {playerState.Position.Y}) that we don't know about!");
+                    }
+                }
             }
         }
     }
