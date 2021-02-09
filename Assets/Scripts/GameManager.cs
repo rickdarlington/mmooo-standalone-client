@@ -120,11 +120,9 @@ public class GameManager : MonoBehaviour
                     ClientPlayer player;
                     if(players.TryGetValue(playerState.Id, out player))
                     {
-                        //TODO I don't actually understand this reconciliation logic.
-                        //TODO why apply the inputs if they've already been applied by client prediction?
                         if (playerState.Id == ConnectionManager.Instance.PlayerId)
                         {
-                            System.Numerics.Vector2 authPos = playerState.Position;
+                            System.Numerics.Vector2 newPos = playerState.Position;
                             
                             //Debug.Log($"server says my positon is {playerState.Position.X}, {playerState.Position.Y}");
                             
@@ -137,11 +135,11 @@ public class GameManager : MonoBehaviour
                                 else
                                 {
                                     NetworkingData.PlayerInputData inputData = player.pendingInputs.Dequeue();
-                                    authPos = PlayerMovement.MovePlayer(inputData, authPos, Time.deltaTime);
+                                    newPos = PlayerMovement.MovePlayer(inputData, newPos, Time.deltaTime);
                                 }
                             }
                             
-                            player.transform.position = new Vector3(authPos.X, authPos.Y,0);
+                            player.transform.position = new Vector3(newPos.X, newPos.Y,0);
                         }
                         else
                         { 
