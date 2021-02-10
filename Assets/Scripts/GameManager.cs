@@ -162,18 +162,13 @@ public class GameManager : MonoBehaviour
                                     player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
                                 }
                             }
-
-                            //TODO snap player back if position isn't too far diverged from server
-                            //if (Vector2.Distance(newPos, new Vector2(player.transform.localPosition.x, player.transform.localPosition.y)) > 0.05f)
-                            //{
-                            //}
                         }
                         else
                         {
                             player.transformPosition.X = playerState.Position.X;
-                            player.transformPosition.Y =  playerState.Position.Y; 
-                            
-                            //interpolation?
+                            player.transformPosition.Y = playerState.Position.Y; 
+
+                            //save for interpolation
                             player.positionBuffer.Enqueue(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
                             player.positionBuffer.Enqueue(playerState.Position);
                         }
