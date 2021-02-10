@@ -29,9 +29,16 @@ public class ClientPlayer : MonoBehaviour
             Debug.Log($"Initializing our player {playerName} with client id ({id})");
             isOwn = true;
         }
+
+        if (playerName == "a")
+        {
+            Prefab.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.SpriteArray[15];
+        }
+
+        Camera.main.transform.SetParent(transform);
     }
 
-    public void processInputs()
+    public void FixedUpdate()
     {
         if (isOwn)
         {
@@ -46,6 +53,8 @@ public class ClientPlayer : MonoBehaviour
 
             if(inputs.Contains(true)) {
                 pendingInputs.Enqueue(inputData);
+
+                transformPosition = PlayerMovement.MovePlayer(inputData, transformPosition, Time.deltaTime);
                 
                 using (Message message = Message.Create((ushort) NetworkingData.Tags.PlayerInput, inputData))
                 {

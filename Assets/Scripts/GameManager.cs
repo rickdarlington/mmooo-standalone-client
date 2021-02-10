@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using DarkRift;
 using DarkRift.Client;
 using MmoooPlugin.Shared;
 using UnityEngine;
-using Object = System.Object;
 using Vector2 = System.Numerics.Vector2;
 
 public class GameManager : MonoBehaviour
@@ -17,6 +15,8 @@ public class GameManager : MonoBehaviour
     public Queue<NetworkingData.GameUpdateData> worldUpdateBuffer = new Queue<NetworkingData.GameUpdateData>();
 
     [Header("Prefabs")] public GameObject PlayerPrefab;
+
+    public Sprite[] SpriteArray;
 
     public uint ClientTick { get; private set; }
     public uint LastReceivedServerTick { get; private set; }
@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
+        
         ConnectionManager.Instance.Client.MessageReceived += onMessage;
             
         using (Message message = Message.Create((ushort)NetworkingData.Tags.PlayerReady, new NetworkingData.PlayerReadyData(true)))
@@ -106,27 +108,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    void Update()
     {
         processServerUpdates();
-
-        processInputs();
-
-        //TODO this is hard to follow because ClientPlayer.positionBuffer alternates between timestamp and position. but making a bunch of objects is super wasteful...
         
         interpolateEntities();
 
         ClientTick++;
-    }
-
-    private void processInputs()
-    {
-        //TODO refactor?  this is "processInputs"
-        ClientPlayer thisPlayer;
-        if(players.TryGetValue(ConnectionManager.Instance.PlayerId, out thisPlayer))
-        {
-            thisPlayer.processInputs();
-        }
     }
 
     private void processServerUpdates()
@@ -145,10 +133,10 @@ public class GameManager : MonoBehaviour
                     ClientPlayer player;
                     if(players.TryGetValue(playerState.Id, out player))
                     {
+                        
                         if (playerState.Id == ConnectionManager.Instance.PlayerId)
                         {
-                            //Debug.Log($"server position {playerState.Position.X}, {playerState.Position.Y} local position: {player.transform.localPosition.x}, {player.transform.localPosition.y}");
-                            
+                            //do reconciliation for this player
                             for (int x = 0; x < player.pendingInputs.Count; x++)
                             {
                                 if (player.pendingInputs.Peek().InputSeq < playerState.LastProcessedInput)
@@ -159,7 +147,10 @@ public class GameManager : MonoBehaviour
                                 {
                                     NetworkingData.PlayerInputData inputData = player.pendingInputs.Dequeue();
 
-                                    player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
+                                    if (Vector2.Distance(player.transformPosition, playerState.Position) > 0.05f)
+                                    {
+                                        player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
+                                    }
                                 }
                             }
                         }
