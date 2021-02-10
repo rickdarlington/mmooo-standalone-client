@@ -25,6 +25,7 @@
       <Path>Library</Path>
       <Path>Logs</Path>
       <Path>Temp</Path>
+      <Path>client</Path>
       <Path>client_Data</Path>
       <Path>demos</Path>
       <Path>obj</Path>
