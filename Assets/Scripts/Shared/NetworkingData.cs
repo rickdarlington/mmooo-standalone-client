@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using DarkRift;
 using Vector2 = System.Numerics.Vector2;
 
@@ -146,12 +145,14 @@ public class NetworkingData
     {
         public ushort Id;
         public string Name;
+        public byte SpriteRowIndex;
         public Vector2 Position;
 
-        public PlayerSpawnData(ushort id, string name, Vector2 position)
+        public PlayerSpawnData(ushort id, string name, byte spriteRowIndex, Vector2 position)
         {
             Id = id;
             Name = name;
+            SpriteRowIndex = spriteRowIndex;
             Position = position;
         }
 
@@ -159,6 +160,7 @@ public class NetworkingData
         {
             Id = e.Reader.ReadUInt16();
             Name = e.Reader.ReadString();
+            SpriteRowIndex = e.Reader.ReadByte();
             Position = new Vector2(e.Reader.ReadSingle(), e.Reader.ReadSingle());
         }
 
@@ -166,13 +168,9 @@ public class NetworkingData
         {
             e.Writer.Write(Id);
             e.Writer.Write(Name);
+            e.Writer.Write(SpriteRowIndex);
             e.Writer.Write(Position.X);
             e.Writer.Write(Position.Y);
-        }
-
-        public String toString()
-        {
-            return $"";
         }
     }
 

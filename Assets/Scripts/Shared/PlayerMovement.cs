@@ -1,12 +1,18 @@
+using System;
 using Vector2 = System.Numerics.Vector2;
 
 namespace MmoooPlugin.Shared
 {
     public static class PlayerMovement
     {
-        //client only
         public static Vector2 MovePlayer(NetworkingData.PlayerInputData input, Vector2 position, float timeStep)
         {
+            //TODO not sure why we're getting a null reference occasionally here...  punt for now, but investigate
+            if (input.Keyinputs == null)
+            {
+                return position;
+            }
+
             Vector2 moveDirection = Vector2.Zero;
 
             bool w = input.Keyinputs[0];
@@ -23,7 +29,7 @@ namespace MmoooPlugin.Shared
                 if (a) moveDirection.X = -1;
                 if (d) moveDirection.X = 1;
             }
-            
+
             position += moveDirection * timeStep;
 
             return position;

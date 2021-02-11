@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
         GameObject go = Instantiate(PlayerPrefab);
         ClientPlayer player = go.GetComponent<ClientPlayer>();
         player.Prefab = go;
-        player.Initialize(data.Id, data.Name, data.Position.X, data.Position.Y);
+        player.Initialize(data.Id, data.Name, data.SpriteRowIndex, data.Position.X, data.Position.Y);
         players.Add(data.Id, player);
         Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
     }
@@ -156,6 +156,7 @@ public class GameManager : MonoBehaviour
                         }
                         else
                         {
+                            player.rotateSprite(playerState.LookDirection);
                             player.transformPosition.X = playerState.Position.X;
                             player.transformPosition.Y = playerState.Position.Y; 
 
