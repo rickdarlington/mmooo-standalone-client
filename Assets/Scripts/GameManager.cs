@@ -4,6 +4,7 @@ using DarkRift;
 using DarkRift.Client;
 using MmoooPlugin.Shared;
 using UnityEngine;
+using Object = System.Object;
 using Vector2 = System.Numerics.Vector2;
 
 public class GameManager : MonoBehaviour
@@ -158,11 +159,9 @@ public class GameManager : MonoBehaviour
                         {
                             player.rotateSprite(playerState.LookDirection);
                             player.transformPosition.X = playerState.Position.X;
-                            player.transformPosition.Y = playerState.Position.Y; 
-
-                            //save for interpolation
-                            player.positionBuffer.Enqueue(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
-                            player.positionBuffer.Enqueue(playerState.Position);
+                            player.transformPosition.Y = playerState.Position.Y;
+                            
+                            player.positionBuffer.Enqueue(new Object[] {DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond, playerState.Position});
                         }
                     }
                     else
@@ -183,42 +182,44 @@ public class GameManager : MonoBehaviour
         foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
         {
             ClientPlayer p = kv.Value;
-                
             //interpolate everyone but myself
             if(p.id != ConnectionManager.Instance.PlayerId)
             {
-                Queue<System.Object> posBuffer = kv.Value.positionBuffer;
+                Queue<Array> posBuffer = kv.Value.positionBuffer;
+
                 int max = posBuffer.Count;
-                for (int i = 0; i < max; i = i + 2)
+
+                for (int i = 0; i < max-2; i++)
                 {
-                    if (max >= 4 && (long)posBuffer.Peek() < renderTimestamp)
+                    if ((long) posBuffer.Peek().GetValue(0) < renderTimestamp)
                     {
-                        posBuffer.Dequeue();
                         posBuffer.Dequeue();
                     }
                 }
 
-                if (posBuffer.Count > 4 && (long)posBuffer.Peek() <= renderTimestamp)
+                Array[] arr = posBuffer.ToArray();
+                if (arr.Length >= 2 && (long)arr[0].GetValue(0) <= renderTimestamp && renderTimestamp <= (long)arr[1].GetValue(0))
                 {
-                    var ts1 = (long) posBuffer.Dequeue();
-                    Vector2 pos1 = (Vector2) posBuffer.Dequeue();
-                    
-                    if (renderTimestamp <= (long) posBuffer.Peek())
-                    {
-                        var ts2 = (long) posBuffer.Dequeue();
-                        Vector2 pos2 = (Vector2) posBuffer.Dequeue();
+                    Array p1 = posBuffer.Dequeue();
+                    Array p2 = posBuffer.Dequeue();
 
-                        if (!pos1.Equals(pos2))
-                        {
-                            long t = ts2 - ts1;
-                            p.transformPosition = Vector2.Lerp(pos1, pos2, t);
-                        }
-                    }
+                    var ts1 = (long) p1.GetValue(0);
+                    Vector2 pos1 = (Vector2) p1.GetValue(1);
+
+                    var ts2 = (long) p2.GetValue(0);
+                    Vector2 pos2 = (Vector2) p2.GetValue(1);
+
+                    float x = pos1.X + (pos2.X - pos1.X) * (renderTimestamp - ts1) / (ts2 - ts1);
+                    float y = pos1.Y + (pos2.Y - pos1.Y) * (renderTimestamp - ts1) / (ts2 - ts1);
+                    
+                    //TODO this interpolation code still doesn't work for shit...
+                    //p.transformPosition = new Vector2(x, y);
+                    //Debug.Log($"interp position: {p.transformPosition.X}, {p.transformPosition.Y}");
                 }
             }
             
             //actually set the position for this player
-            p.transform.localPosition = new Vector3(p.transformPosition.X, p.transformPosition.Y);
+            p.transform.localPosition = new Vector3(p.transformPosition.X, p.transformPosition.Y, 0);
         }
         
         //finally, move myself (why here? will we interpolate server snapbacks? probably?)
@@ -227,5 +228,11 @@ public class GameManager : MonoBehaviour
         {
             player.transform.localPosition = new Vector3(player.transformPosition.X, player.transformPosition.Y, 0);
         }
+    }
+
+    public void OnDisable()
+    {
+        players.Clear();
+        worldUpdateBuffer.Clear();
     }
 }

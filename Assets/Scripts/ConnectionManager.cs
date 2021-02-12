@@ -3,6 +3,7 @@ using DarkRift;
 using DarkRift.Client;
 using DarkRift.Client.Unity;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(UnityClient))]
 public class ConnectionManager : MonoBehaviour
@@ -52,7 +53,8 @@ public class ConnectionManager : MonoBehaviour
 
     private void DisconnectCallback(object o, DisconnectedEventArgs args)
     {
-        Debug.LogError("Server disconnected.");
+        Debug.Log("Server disconnected.");
+        SceneManager.LoadScene("Login", LoadSceneMode.Single);
         loginManager.StartLoginProcess();
     }
 }

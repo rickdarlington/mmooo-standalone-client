@@ -11,7 +11,7 @@ public class ClientPlayer : MonoBehaviour
     private ushort inputSeq = 0;
     public ushort id;
     public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
-    public Queue<System.Object> positionBuffer = new Queue<System.Object>();
+    public Queue<System.Array> positionBuffer = new Queue<System.Array>();
     public System.Numerics.Vector2 transformPosition = new System.Numerics.Vector2(0,0);
 
     private NetworkingData.PlayerStateData PlayerPosition;
