@@ -195,7 +195,7 @@ public class GameManager : MonoBehaviour
                     {
                         posBuffer.Dequeue();
                     }
-                }
+                } 
 
                 Array[] arr = posBuffer.ToArray();
                 if (arr.Length >= 2 && (long)arr[0].GetValue(0) <= renderTimestamp && renderTimestamp <= (long)arr[1].GetValue(0))
