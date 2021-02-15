@@ -7,15 +7,15 @@ using UnityEngine;
 public class ClientPlayer : MonoBehaviour
 {
     private string playerName;
-    private bool isOwn;
+    public bool isOwn;
     private ushort inputSeq = 0;
     public ushort id;
     public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
     public Queue<System.Array> positionBuffer = new Queue<System.Array>();
+
+    public System.Numerics.Vector2 previousTransformPosition = new System.Numerics.Vector2(0,0);
     public System.Numerics.Vector2 transformPosition = new System.Numerics.Vector2(0,0);
-
-    private NetworkingData.PlayerStateData PlayerPosition;
-
+    
     public GameObject Prefab;
 
 
@@ -71,7 +71,10 @@ public class ClientPlayer : MonoBehaviour
             
             NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, lookDirection, inputSeq);
 
+            previousTransformPosition = transformPosition;
+
             if(inputs.Contains(true)) {
+                //save inputs for later reconciliation
                 pendingInputs.Enqueue(inputData);
 
                 transformPosition = PlayerMovement.MovePlayer(inputData, transformPosition, Time.deltaTime);
@@ -86,5 +89,17 @@ public class ClientPlayer : MonoBehaviour
                 inputSeq++;
             }
         }
+    }
+    
+    public static ClientPlayer getOwnerPlayer()
+    {
+        ClientPlayer player;
+        if (!GameManager.Instance.players.TryGetValue(ConnectionManager.Instance.PlayerId, out player))
+        {
+            Debug.LogError($"Tried to get my ClientPlayer and failed.");
+            //TODO throw exception? this can't happen...            
+        }
+
+        return player;
     }
 }

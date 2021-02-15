@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private Dictionary<ushort, ClientPlayer> players = new Dictionary<ushort, ClientPlayer>();
+    public Dictionary<ushort, ClientPlayer> players = new Dictionary<ushort, ClientPlayer>();
     
     public Queue<NetworkingData.GameUpdateData> worldUpdateBuffer = new Queue<NetworkingData.GameUpdateData>();
 
@@ -63,8 +63,7 @@ public class GameManager : MonoBehaviour
                     OnGameStart(message.Deserialize<NetworkingData.GameStartData>());
                     break;
                 case NetworkingData.Tags.GameUpdate:
-                    NetworkingData.GameUpdateData gameUpdateData = message.Deserialize<NetworkingData.GameUpdateData>();
-                    worldUpdateBuffer.Enqueue(gameUpdateData);
+                    worldUpdateBuffer.Enqueue(message.Deserialize<NetworkingData.GameUpdateData>());
                     break;
                 case NetworkingData.Tags.PlayerSpawn:
                     SpawnPlayer(message.Deserialize<NetworkingData.PlayerSpawnData>());
@@ -109,10 +108,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        processServerUpdates();
-        
+        processServerUpdates(); 
+    }
+
+    void Update()
+    { 
         interpolateEntities();
 
         ClientTick++;
@@ -150,6 +152,7 @@ public class GameManager : MonoBehaviour
 
                                     if (Vector2.Distance(player.transformPosition, playerState.Position) > 0.05f)
                                     {
+                                        Debug.Log("Snap");
                                         player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
                                     }
                                 }
@@ -158,10 +161,8 @@ public class GameManager : MonoBehaviour
                         else
                         {
                             player.rotateSprite(playerState.LookDirection);
-                            player.transformPosition.X = playerState.Position.X;
-                            player.transformPosition.Y = playerState.Position.Y;
-                            
                             player.positionBuffer.Enqueue(new Object[] {DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond, playerState.Position});
+
                         }
                     }
                     else
@@ -176,57 +177,15 @@ public class GameManager : MonoBehaviour
 
     private void interpolateEntities()
     {
-        //TODO refactor: this is really hard to follow because our buffer is holding alternating datatypes
-        long renderTimestamp = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         
-        foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
-        {
-            ClientPlayer p = kv.Value;
-            //interpolate everyone but myself
-            if(p.id != ConnectionManager.Instance.PlayerId)
-            {
-                Queue<Array> posBuffer = kv.Value.positionBuffer;
-
-                int max = posBuffer.Count;
-
-                for (int i = 0; i < max-2; i++)
-                {
-                    if ((long) posBuffer.Peek().GetValue(0) < renderTimestamp)
-                    {
-                        posBuffer.Dequeue();
-                    }
-                } 
-
-                Array[] arr = posBuffer.ToArray();
-                if (arr.Length >= 2 && (long)arr[0].GetValue(0) <= renderTimestamp && renderTimestamp <= (long)arr[1].GetValue(0))
-                {
-                    Array p1 = posBuffer.Dequeue();
-                    Array p2 = posBuffer.Dequeue();
-
-                    var ts1 = (long) p1.GetValue(0);
-                    Vector2 pos1 = (Vector2) p1.GetValue(1);
-
-                    var ts2 = (long) p2.GetValue(0);
-                    Vector2 pos2 = (Vector2) p2.GetValue(1);
-
-                    float x = pos1.X + (pos2.X - pos1.X) * (renderTimestamp - ts1) / (ts2 - ts1);
-                    float y = pos1.Y + (pos2.Y - pos1.Y) * (renderTimestamp - ts1) / (ts2 - ts1);
-                    
-                    //TODO this interpolation code still doesn't work for shit...
-                    //p.transformPosition = new Vector2(x, y);
-                    //Debug.Log($"interp position: {p.transformPosition.X}, {p.transformPosition.Y}");
-                }
-            }
-            
-            //actually set the position for this player
-            p.transform.localPosition = new Vector3(p.transformPosition.X, p.transformPosition.Y, 0);
-        }
         
-        //finally, move myself (why here? will we interpolate server snapbacks? probably?)
         ClientPlayer player;
         if (players.TryGetValue(ConnectionManager.Instance.PlayerId, out player))
         {
-            player.transform.localPosition = new Vector3(player.transformPosition.X, player.transformPosition.Y, 0);
+            //interpolate our player based on his stored previous transform and current transform position
+            Vector2 pos = Vector2.Lerp(player.previousTransformPosition, player.transformPosition, Time.deltaTime);
+            //Debug.Log($"{pos.X}, {pos.Y} dt: {Time.deltaTime}");
+            player.transform.localPosition = new Vector3(pos.X, pos.Y, 0);
         }
     }
 
