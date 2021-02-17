@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DarkRift;
-using DarkRift.Client;
 using MmoooPlugin.Shared;
 using UnityEngine;
-using Object = System.Object;
+using MessageReceivedEventArgs = DarkRift.Client.MessageReceivedEventArgs;
 using Vector2 = System.Numerics.Vector2;
 
 public class GameManager : MonoBehaviour
@@ -80,6 +78,8 @@ public class GameManager : MonoBehaviour
 
     void OnGameStart(NetworkingData.GameStartData data)
     {
+        spawnFixedNPC();
+        
         LastReceivedServerTick = data.OnJoinServerTick;
         ClientTick = data.OnJoinServerTick;
         foreach (NetworkingData.PlayerSpawnData playerSpawnData in data.Players)
@@ -87,7 +87,7 @@ public class GameManager : MonoBehaviour
             SpawnPlayer(playerSpawnData);
         }
         
-        spawnFixedNPC();
+        
     }
 
     void SpawnPlayer(NetworkingData.PlayerSpawnData data)
@@ -151,9 +151,17 @@ public class GameManager : MonoBehaviour
                     ClientPlayer player;
                     if(players.TryGetValue(playerState.Id, out player))
                     {
-                        
-                        
-                        player.rotateSprite(playerState.LookDirection);
+                        if (player.isOwn)
+                        {
+                            doPlayerReconciliation(player, playerState);
+                        }
+                        else
+                        {
+                            //server position for others is authoritative (smooth with interpolation later)
+                            player.previousPosition = player.currentPosition;
+                            player.currentPosition = playerState.Position;
+                            player.rotateSprite(playerState.LookDirection);
+                        }
                     }
                     else
                     {
@@ -164,9 +172,47 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void doPlayerReconciliation(ClientPlayer player, NetworkingData.PlayerStateData playerState)
+    {
+        //server position for us is used for reconciliation
+        var reconciledPosition = playerState.Position;
+                            
+        var max = player.reconciliationInputs.Count;
+
+        if (player.reconciliationInputs.Count > 100)
+        {
+            Debug.LogError($"We seem to be leaking reconciliation inputs (count: {player.reconciliationInputs.Count}");
+        }
+        
+        for (int x = 0; x < max; x++)
+        {
+            var nextInput = player.reconciliationInputs.Dequeue();
+
+            if (nextInput.InputSeq >= playerState.LastProcessedInput)
+            {
+                reconciledPosition = PlayerMovement.MovePlayer(nextInput, reconciledPosition, nextInput.DeltaTime);
+            }
+
+            var renderPosition = player.transform.localPosition;
+            if (Vector2.Distance(new Vector2(renderPosition.x, renderPosition.y), reconciledPosition) > 0.05f) 
+            {
+                //TODO may want to really, really re-verify this reconciliation logic isn't causing issues/popping/choppy rendering
+                //TODO remove me Debug.Log($"reconciling position from rendered position: {renderPosition.x}, {renderPosition.y} to server position: {reconciledPosition.X}, {reconciledPosition.Y}");
+                player.transform.localPosition = new Vector3(reconciledPosition.X, reconciledPosition.Y, 0);
+            }
+        }
+    }
+    
     private void interpolateEntities()
     {
-
+        foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
+        {
+            ClientPlayer player = kv.Value;
+            if (!player.isOwn)
+            {
+                player.transform.position = new Vector3(player.currentPosition.X, player.currentPosition.Y, 0);
+            }
+        }
     }
 
     public void OnDisable()

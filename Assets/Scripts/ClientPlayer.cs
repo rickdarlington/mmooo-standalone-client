@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using DarkRift;
 using MmoooPlugin.Shared;
 using UnityEngine;
+using Vector2 = System.Numerics.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 public class ClientPlayer : MonoBehaviour
@@ -14,10 +14,12 @@ public class ClientPlayer : MonoBehaviour
 
     private ushort inputSeq = 0;
     public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
-    
-    public System.Numerics.Vector2 prevPosition = new System.Numerics.Vector2(0,0);
-    public System.Numerics.Vector2 nextPosition = new System.Numerics.Vector2(0,0);
-    
+    public Queue<NetworkingData.PlayerInputData> reconciliationInputs = new Queue<NetworkingData.PlayerInputData>();
+
+    //for interpolation
+    public Vector2 previousPosition = Vector2.Zero;
+    public Vector2 currentPosition = Vector2.Zero;
+
     public ushort spriteRowIndex = 0;
     public GameObject Prefab;
     private SpriteRenderer renderer;
@@ -72,11 +74,11 @@ public class ClientPlayer : MonoBehaviour
             
             NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, lookDirection, inputSeq, Time.deltaTime);
 
-            prevPosition = new System.Numerics.Vector2(transform.localPosition.x, transform.localPosition.y);
-            
             if(inputs.Contains(true)) {
+                //TODO can we do this differently to simplify to one list/queue
                 pendingInputs.Enqueue(inputData);
-                var pos = PlayerMovement.MovePlayer(inputData, prevPosition, Time.deltaTime);
+                reconciliationInputs.Enqueue(inputData);
+                var pos = PlayerMovement.MovePlayer(inputData, new System.Numerics.Vector2(transform.localPosition.x, transform.localPosition.y), Time.deltaTime);
                 transform.localPosition = new Vector3(pos.X, pos.Y);
                 rotateSprite(lookDirection);
                 inputSeq++;
@@ -91,11 +93,6 @@ public class ClientPlayer : MonoBehaviour
         var c = pendingInputs.Count;
         NetworkingData.PlayerInputData[] datas = new NetworkingData.PlayerInputData[c];
 
-        if (c > 0)
-        {
-            Debug.Log($"pending inputs: {c}");
-        }
-
         for (int i = 0; i < c; i++)
         {
             datas[i] = pendingInputs.Dequeue();
@@ -106,17 +103,5 @@ public class ClientPlayer : MonoBehaviour
             //NOTE uncomment if you want to see the last input sequence number sent by the client: Debug.Log($"last sent input sequence number: {inputData.InputSeq}");
             ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
         }
-    }
-    
-    public static ClientPlayer getOwnerPlayer()
-    {
-        ClientPlayer player;
-        if (!GameManager.Instance.players.TryGetValue(ConnectionManager.Instance.PlayerId, out player))
-        {
-            Debug.LogError($"Tried to get my ClientPlayer and failed.");
-            //TODO throw exception? this can't happen...            
-        }
-
-        return player;
     }
 }
