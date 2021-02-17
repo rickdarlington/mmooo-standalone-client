@@ -86,6 +86,8 @@ public class GameManager : MonoBehaviour
         {
             SpawnPlayer(playerSpawnData);
         }
+        
+        spawnFixedNPC();
     }
 
     void SpawnPlayer(NetworkingData.PlayerSpawnData data)
@@ -93,9 +95,22 @@ public class GameManager : MonoBehaviour
         GameObject go = Instantiate(PlayerPrefab);
         ClientPlayer player = go.GetComponent<ClientPlayer>();
         player.Prefab = go;
-        player.Initialize(data.Id, data.Name, data.SpriteRowIndex, data.Position.X, data.Position.Y);
+        player.Initialize(data.Id, data.Name, data.SpriteRowIndex, data.Position.X, data.Position.Y, go);
         players.Add(data.Id, player);
         Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
+    }
+
+    //TODO remove me
+    void spawnFixedNPC()
+    {
+        GameObject go = Instantiate(PlayerPrefab);
+        
+        int spriteIndex = (12 * 14);
+        int animationFrames = 3;
+        
+        go.GetComponent<SpriteRenderer>().sprite = Instance.SpriteArray[spriteIndex + (animationFrames*1)];
+    
+        transform.localPosition = new Vector3(15, 15, 0);
     }
 
     void DespawnPlayer(ushort id)
@@ -110,7 +125,7 @@ public class GameManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        processServerUpdates(); 
+        processServerUpdates();
     }
 
     void Update()
@@ -137,33 +152,8 @@ public class GameManager : MonoBehaviour
                     if(players.TryGetValue(playerState.Id, out player))
                     {
                         
-                        if (playerState.Id == ConnectionManager.Instance.PlayerId)
-                        {
-                            //do reconciliation for this player
-                            for (int x = 0; x < player.pendingInputs.Count; x++)
-                            {
-                                if (player.pendingInputs.Peek().InputSeq < playerState.LastProcessedInput)
-                                {
-                                    player.pendingInputs.Dequeue();
-                                }
-                                else
-                                {
-                                    NetworkingData.PlayerInputData inputData = player.pendingInputs.Dequeue();
-
-                                    if (Vector2.Distance(player.transformPosition, playerState.Position) > 0.05f)
-                                    {
-                                        Debug.Log("Snap");
-                                        player.transformPosition = PlayerMovement.MovePlayer(inputData, playerState.Position, Time.deltaTime);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            player.rotateSprite(playerState.LookDirection);
-                            player.positionBuffer.Enqueue(new Object[] {DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond, playerState.Position});
-
-                        }
+                        
+                        player.rotateSprite(playerState.LookDirection);
                     }
                     else
                     {
@@ -171,22 +161,12 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            
         }
     }
 
     private void interpolateEntities()
     {
-        
-        
-        ClientPlayer player;
-        if (players.TryGetValue(ConnectionManager.Instance.PlayerId, out player))
-        {
-            //interpolate our player based on his stored previous transform and current transform position
-            Vector2 pos = Vector2.Lerp(player.previousTransformPosition, player.transformPosition, Time.deltaTime);
-            //Debug.Log($"{pos.X}, {pos.Y} dt: {Time.deltaTime}");
-            player.transform.localPosition = new Vector3(pos.X, pos.Y, 0);
-        }
+
     }
 
     public void OnDisable()

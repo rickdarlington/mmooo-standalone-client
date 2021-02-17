@@ -1,32 +1,33 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using DarkRift;
 using MmoooPlugin.Shared;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 public class ClientPlayer : MonoBehaviour
 {
-    private string playerName;
+    public string Name;
     public bool isOwn;
+    public ushort ID;
+
     private ushort inputSeq = 0;
-    public ushort id;
     public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
-    public Queue<System.Array> positionBuffer = new Queue<System.Array>();
-
-    public System.Numerics.Vector2 previousTransformPosition = new System.Numerics.Vector2(0,0);
-    public System.Numerics.Vector2 transformPosition = new System.Numerics.Vector2(0,0);
     
+    public System.Numerics.Vector2 prevPosition = new System.Numerics.Vector2(0,0);
+    public System.Numerics.Vector2 nextPosition = new System.Numerics.Vector2(0,0);
+    
+    public ushort spriteRowIndex = 0;
     public GameObject Prefab;
-
-
     private SpriteRenderer renderer;
     private ushort DefaultLookDirection = 1;
-    public ushort spriteRowIndex = 0;
-    
-    public void Initialize(ushort id, string playerName, byte spriteRow, float x, float y)
+
+    public void Initialize(ushort id, string playerName, byte spriteRow, float x, float y, GameObject prefab)
     {
-        this.id = id;
-        this.playerName = playerName;
+        ID = id;
+        Name = name;
+        Prefab = prefab;
         transform.localPosition = new Vector3(x, y, 0);
         
         if (ConnectionManager.Instance.PlayerId == id)
@@ -50,7 +51,7 @@ public class ClientPlayer : MonoBehaviour
         renderer.sprite = GameManager.Instance.SpriteArray[spriteIndex + (animationFrames*lookDirection)];
     }
 
-    public void FixedUpdate()
+    public void Update()
     {
         //LookDirection is 0: right, 1: down, 2: left, 3: up
         //animation frames is # frames for walk animation
@@ -69,25 +70,41 @@ public class ClientPlayer : MonoBehaviour
             if (inputs[1]) lookDirection = 2;
             if (inputs[3]) lookDirection = 0;
             
-            NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, lookDirection, inputSeq);
+            NetworkingData.PlayerInputData inputData = new NetworkingData.PlayerInputData(inputs, lookDirection, inputSeq, Time.deltaTime);
 
-            previousTransformPosition = transformPosition;
-
+            prevPosition = new System.Numerics.Vector2(transform.localPosition.x, transform.localPosition.y);
+            
             if(inputs.Contains(true)) {
-                //save inputs for later reconciliation
                 pendingInputs.Enqueue(inputData);
-
-                transformPosition = PlayerMovement.MovePlayer(inputData, transformPosition, Time.deltaTime);
+                var pos = PlayerMovement.MovePlayer(inputData, prevPosition, Time.deltaTime);
+                transform.localPosition = new Vector3(pos.X, pos.Y);
                 rotateSprite(lookDirection);
-
-                using (Message message = Message.Create((ushort) NetworkingData.Tags.PlayerInput, inputData))
-                {
-                    //NOTE uncomment if you want to see the last input sequence number sent by the client: Debug.Log($"last sent input sequence number: {inputData.InputSeq}");
-                    ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
-                }
-                
                 inputSeq++;
+                
+                //TODO remove me Debug.Log($"position updated to: {pos.X}, {pos.Y}");
             }
+        }
+    }
+
+    public void FixedUpdate()
+    {
+        var c = pendingInputs.Count;
+        NetworkingData.PlayerInputData[] datas = new NetworkingData.PlayerInputData[c];
+
+        if (c > 0)
+        {
+            Debug.Log($"pending inputs: {c}");
+        }
+
+        for (int i = 0; i < c; i++)
+        {
+            datas[i] = pendingInputs.Dequeue();
+        }
+
+        using (Message message = Message.Create((ushort) NetworkingData.Tags.PlayerInputs, new NetworkingData.PlayerInputDatas(datas)))
+        {
+            //NOTE uncomment if you want to see the last input sequence number sent by the client: Debug.Log($"last sent input sequence number: {inputData.InputSeq}");
+            ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
         }
     }
     

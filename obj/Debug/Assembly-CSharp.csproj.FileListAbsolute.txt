@@ -749,3 +749,4 @@
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp.csproj.CopyComplete
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp.dll
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp.pdb
+/home/rickd/code/mmooo/mmooo-standalone-client/Temp/bin/Debug/nunit.framework.dll

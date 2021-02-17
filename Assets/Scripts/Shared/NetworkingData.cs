@@ -13,6 +13,7 @@ public class NetworkingData
         GameStartData = 100,
         GameUpdate = 200,
         PlayerInput = 203,
+        PlayerInputs = 204,
         PlayerSpawn = 300,
         PlayerDeSpawn = 301
     }
@@ -78,18 +79,40 @@ public class NetworkingData
             e.Writer.Write(Ready);
         }
     }
+
+    public struct PlayerInputDatas : IDarkRiftSerializable
+    {
+        public PlayerInputData[] InputDatas;
+        
+        public PlayerInputDatas(PlayerInputData[] inputDatas)
+        {
+            InputDatas = inputDatas;
+        }
+
+        public void Deserialize(DeserializeEvent e)
+        {
+            InputDatas = e.Reader.ReadSerializables<PlayerInputData>();
+        }
+
+        public void Serialize(SerializeEvent e)
+        {
+            e.Writer.Write(InputDatas);
+        }
+    }
     
     public struct PlayerInputData : IDarkRiftSerializable
     {
         public bool[] Keyinputs;
         public byte LookDirection;
         public uint InputSeq;
+        public float DeltaTime;
  
-        public PlayerInputData(bool[] keyInputs, byte lookDirection, uint inputSeq)
+        public PlayerInputData(bool[] keyInputs, byte lookDirection, uint inputSeq, float deltaTime)
         {
             Keyinputs = keyInputs;
             LookDirection = lookDirection;
             InputSeq = inputSeq;
+            DeltaTime = deltaTime;
         }
  
         public void Deserialize(DeserializeEvent e)
@@ -97,6 +120,7 @@ public class NetworkingData
             Keyinputs = e.Reader.ReadBooleans();
             LookDirection = e.Reader.ReadByte();
             InputSeq = e.Reader.ReadUInt32();
+            DeltaTime = e.Reader.ReadSingle();
         }
  
         public void Serialize(SerializeEvent e)
@@ -105,6 +129,7 @@ public class NetworkingData
             e.Writer.Write(Keyinputs);
             e.Writer.Write(LookDirection);
             e.Writer.Write(InputSeq);
+            e.Writer.Write(DeltaTime);
         }
     }
     
