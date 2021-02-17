@@ -153,6 +153,7 @@ public class GameManager : MonoBehaviour
                     {
                         if (player.isOwn)
                         {
+                            //server position for us is used for reconciliation
                             doPlayerReconciliation(player, playerState);
                         }
                         else
@@ -174,7 +175,6 @@ public class GameManager : MonoBehaviour
 
     private void doPlayerReconciliation(ClientPlayer player, NetworkingData.PlayerStateData playerState)
     {
-        //server position for us is used for reconciliation
         var reconciledPosition = playerState.Position;
                             
         var max = player.reconciliationInputs.Count;
