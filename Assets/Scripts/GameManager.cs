@@ -210,6 +210,7 @@ public class GameManager : MonoBehaviour
     private void interpolateEntities()
     {
         //TODO this is pretty decent, if a little choppy
+        //TODO we're making a big assumption here that the client won't drift too much, but I don't feel like implementing clock sync (yet)
         float renderTime = Time.time*1000f - serverUpdateRateMs;
         
         foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
