@@ -232,6 +232,7 @@ public class GameManager : MonoBehaviour
                     var newy = states[0].Position.Y + (states[1].Position.Y - states[0].Position.Y) * (renderTime - states[0].LocalRenderTimestamp) / (states[1].LocalRenderTimestamp - states[0].LocalRenderTimestamp);
                     
                     player.transform.localPosition = new Vector3(newx, newy, 0);
+                    player.rotateSprite(states[0].LookDirection);
                 }
             }
         }
