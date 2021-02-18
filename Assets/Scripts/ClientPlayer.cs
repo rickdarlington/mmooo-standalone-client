@@ -8,7 +8,7 @@ using Vector3 = UnityEngine.Vector3;
 
 public class ClientPlayer : MonoBehaviour
 {
-    public string Name;
+    public string name;
     public bool isOwn;
     public ushort ID;
 
@@ -17,24 +17,23 @@ public class ClientPlayer : MonoBehaviour
     public Queue<NetworkingData.PlayerInputData> reconciliationInputs = new Queue<NetworkingData.PlayerInputData>();
 
     //for interpolation
-    public Vector2 previousPosition = Vector2.Zero;
-    public Vector2 currentPosition = Vector2.Zero;
+    public Queue<NetworkingData.PlayerStateData> positionBuffer = new Queue<NetworkingData.PlayerStateData>();
 
     public ushort spriteRowIndex = 0;
     public GameObject Prefab;
     private SpriteRenderer renderer;
     private ushort DefaultLookDirection = 1;
 
-    public void Initialize(ushort id, string playerName, byte spriteRow, float x, float y, GameObject prefab)
+    public void Initialize(ushort id, string name, byte spriteRow, float x, float y, GameObject prefab)
     {
         ID = id;
-        Name = name;
+        this.name = name;
         Prefab = prefab;
         transform.localPosition = new Vector3(x, y, 0);
         
         if (ConnectionManager.Instance.PlayerId == id)
         {
-            Debug.Log($"Initializing our player {playerName} with client id ({id})");
+            Debug.Log($"Initializing our player {this.name} with client id ({id})");
             isOwn = true;
             Camera.main.transform.SetParent(Prefab.transform);
         }

@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using DarkRift;
 using MmoooPlugin.Shared;
+using UnityEditor;
 using UnityEngine;
 using MessageReceivedEventArgs = DarkRift.Client.MessageReceivedEventArgs;
 using Vector2 = System.Numerics.Vector2;
@@ -19,6 +22,8 @@ public class GameManager : MonoBehaviour
 
     public uint ClientTick { get; private set; }
     public uint LastReceivedServerTick { get; private set; }
+
+    private long serverUpdateRateMs = 100;
     
     void OnDestroy()
     {
@@ -159,9 +164,8 @@ public class GameManager : MonoBehaviour
                         else
                         {
                             //server position for others is authoritative (smooth with interpolation later)
-                            player.previousPosition = player.currentPosition;
-                            player.currentPosition = playerState.Position;
-                            player.rotateSprite(playerState.LookDirection);
+                            playerState.LocalRenderTimestamp = Time.time * 1000f;
+                            player.positionBuffer.Enqueue(playerState);
                         }
                     }
                     else
@@ -194,7 +198,7 @@ public class GameManager : MonoBehaviour
             }
 
             var renderPosition = player.transform.localPosition;
-            if (Vector2.Distance(new Vector2(renderPosition.x, renderPosition.y), reconciledPosition) > 0.05f) 
+            if (Vector2.Distance(new Vector2(renderPosition.x, renderPosition.y), reconciledPosition) > 0.05f)
             {
                 //TODO may want to really, really re-verify this reconciliation logic isn't causing issues/popping/choppy rendering
                 //TODO remove me Debug.Log($"reconciling position from rendered position: {renderPosition.x}, {renderPosition.y} to server position: {reconciledPosition.X}, {reconciledPosition.Y}");
@@ -205,12 +209,29 @@ public class GameManager : MonoBehaviour
     
     private void interpolateEntities()
     {
+        //TODO this is pretty decent, if a little choppy
+        float renderTime = Time.time*1000f - serverUpdateRateMs;
+        
         foreach (KeyValuePair<ushort, ClientPlayer> kv in players)
         {
             ClientPlayer player = kv.Value;
             if (!player.isOwn)
             {
-                player.transform.position = new Vector3(player.currentPosition.X, player.currentPosition.Y, 0);
+                var buffer = player.positionBuffer;
+                while (buffer.Count > 2 && buffer.Peek().LocalRenderTimestamp <= renderTime)
+                {
+                    buffer.Dequeue();
+                }
+                
+                var states = buffer.ToArray();
+
+                if (states.Length >= 2 && states[0].LocalRenderTimestamp <= renderTime && renderTime <= states[1].LocalRenderTimestamp)
+                {
+                    var newx = states[0].Position.X + (states[1].Position.X - states[0].Position.X) * (renderTime - states[0].LocalRenderTimestamp) / (states[1].LocalRenderTimestamp - states[0].LocalRenderTimestamp);
+                    var newy = states[0].Position.Y + (states[1].Position.Y - states[0].Position.Y) * (renderTime - states[0].LocalRenderTimestamp) / (states[1].LocalRenderTimestamp - states[0].LocalRenderTimestamp);
+                    
+                    player.transform.localPosition = new Vector3(newx, newy, 0);
+                }
             }
         }
     }

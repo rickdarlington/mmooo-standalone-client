@@ -139,6 +139,7 @@ public class NetworkingData
         public Vector2 Position;
         public byte LookDirection;
         public uint LastProcessedInput;
+        public float LocalRenderTimestamp;
 
         public PlayerStateData(ushort id, Vector2 position, byte lookDirection, uint lastProcessedInput)
         {
@@ -146,6 +147,7 @@ public class NetworkingData
             Position = position;
             LookDirection = lookDirection;
             LastProcessedInput = lastProcessedInput;
+            LocalRenderTimestamp = 0f;
         }
 
         public void Deserialize(DeserializeEvent e)
