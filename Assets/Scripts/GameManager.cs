@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
 using DarkRift;
 using MmoooPlugin.Shared;
-using UnityEditor;
 using UnityEngine;
 using MessageReceivedEventArgs = DarkRift.Client.MessageReceivedEventArgs;
 using Vector2 = System.Numerics.Vector2;
@@ -44,6 +41,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        //TODO need resources load strategy when this gets larger
         SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
         
         ConnectionManager.Instance.Client.MessageReceived += onMessage;
@@ -83,6 +81,7 @@ public class GameManager : MonoBehaviour
 
     void OnGameStart(NetworkingData.GameStartData data)
     {
+        //TODO temporary - remove me
         spawnFixedNPC();
         
         LastReceivedServerTick = data.OnJoinServerTick;
@@ -105,7 +104,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
     }
 
-    //TODO remove me
+    //TODO temporary - remove me
     void spawnFixedNPC()
     {
         GameObject go = Instantiate(PlayerPrefab);
@@ -142,6 +141,7 @@ public class GameManager : MonoBehaviour
 
     private void processServerUpdates()
     {
+        //TODO can we clean up the deep nesting here?
         if (worldUpdateBuffer.Count > 0)
         {
             int numUpdates = worldUpdateBuffer.Count;
@@ -163,7 +163,7 @@ public class GameManager : MonoBehaviour
                         }
                         else
                         {
-                            //server position for others is authoritative (smooth with interpolation later)
+                            //server position for others is authoritative (enqueue in positionBuffer since we smooth this with interpolation later)
                             playerState.LocalRenderTimestamp = Time.time * 1000f;
                             player.positionBuffer.Enqueue(playerState);
                         }

@@ -3,7 +3,6 @@ using System.Linq;
 using DarkRift;
 using MmoooPlugin.Shared;
 using UnityEngine;
-using Vector2 = System.Numerics.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 public class ClientPlayer : MonoBehaviour
@@ -12,11 +11,16 @@ public class ClientPlayer : MonoBehaviour
     public bool isOwn;
     public ushort ID;
 
-    private ushort inputSeq = 0;
+    //for batching inputs at 30hz instead of the 60hz fixedupdate rate.
+    //for smooth movement that is in sync with rendering make sure to set unity edit > Project Settings > Time > Fixed Timestep = 0.01666667
     public Queue<NetworkingData.PlayerInputData> pendingInputs = new Queue<NetworkingData.PlayerInputData>();
+    private ushort inputSeq = 0;
+    
+    //saved inputs for reconciliation (connected player only)
+    //it would probably be better/more efficient if we only had one of pendingInputs OR reconciliationInputs, but this is easier to manage
     public Queue<NetworkingData.PlayerInputData> reconciliationInputs = new Queue<NetworkingData.PlayerInputData>();
 
-    //for interpolation
+    //for interpolation (all entities EXCEPT connected player
     public Queue<NetworkingData.PlayerStateData> positionBuffer = new Queue<NetworkingData.PlayerStateData>();
 
     public ushort spriteRowIndex = 0;
