@@ -28,6 +28,8 @@ public class ClientPlayer : MonoBehaviour
     private SpriteRenderer renderer;
     private ushort DefaultLookDirection = 1;
 
+    public Sprite[] SpriteArray;
+    
     public void Initialize(ushort id, string name, byte spriteRow, float x, float y, GameObject prefab)
     {
         ID = id;
@@ -53,7 +55,7 @@ public class ClientPlayer : MonoBehaviour
         int spriteIndex = (spriteRowIndex * 14);
         int animationFrames = 3;
         
-        renderer.sprite = GameManager.Instance.SpriteArray[spriteIndex + (animationFrames*lookDirection)];
+        renderer.sprite = SpriteArray[spriteIndex + (animationFrames*lookDirection)];
     }
 
     public void Update()

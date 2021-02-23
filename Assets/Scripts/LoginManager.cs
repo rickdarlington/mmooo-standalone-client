@@ -14,8 +14,10 @@ public class LoginManager : MonoBehaviour
     [SerializeField] private InputField nameInput;
     [SerializeField] private Button submitLoginButton;
 
-    void Start()
+    void Awake()
     {
+        DontDestroyOnLoad(this);
+
         submitLoginButton.onClick.AddListener(OnSubmitLogin);
         loginWindow.SetActive(false);
     }
@@ -46,14 +48,9 @@ public class LoginManager : MonoBehaviour
         }
     }
     
-    public IEnumerator LoadLogin()
+    public static void LoadLogin()
     {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Login");
-
-        while (!asyncLoad.isDone)
-        {
-            yield return null;
-        }
+        SceneManager.LoadScene("Login");
         
         Debug.Log("login loaded");
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using DarkRift;
+using DarkRift.Client.Unity;
 using MmoooPlugin.Shared;
 using UnityEngine;
 using MessageReceivedEventArgs = DarkRift.Client.MessageReceivedEventArgs;
@@ -7,8 +8,6 @@ using Vector2 = System.Numerics.Vector2;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
-
     public Dictionary<ushort, ClientPlayer> players = new Dictionary<ushort, ClientPlayer>();
     
     public Queue<NetworkingData.GameUpdateData> worldUpdateBuffer = new Queue<NetworkingData.GameUpdateData>();
@@ -21,29 +20,17 @@ public class GameManager : MonoBehaviour
     public uint LastReceivedServerTick { get; private set; }
 
     private long serverUpdateRateMs = 100;
-    
-    void OnDestroy()
-    {
-        Instance = null;
-    }
-    
+
     void Awake()
     {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(this);
+        //TODO need resources load strategy when this gets larger
+        SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
     }
 
     void Start()
     {
-        //TODO need resources load strategy when this gets larger
-        SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
-        
+        ConnectionManager.Instance.Client.MessageReceived += onMessage;
+
         using (Message message = Message.Create((ushort)NetworkingData.Tags.PlayerReady, new NetworkingData.PlayerReadyData(true)))
         {
             ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
@@ -62,14 +49,13 @@ public class GameManager : MonoBehaviour
         {
             SpawnPlayer(playerSpawnData);
         }
-        
-        
     }
 
     void SpawnPlayer(NetworkingData.PlayerSpawnData data)
     {
         GameObject go = Instantiate(PlayerPrefab);
         ClientPlayer player = go.GetComponent<ClientPlayer>();
+        player.SpriteArray = SpriteArray;
         player.Prefab = go;
         player.Initialize(data.Id, data.Name, data.SpriteRowIndex, data.Position.X, data.Position.Y, go);
         players.Add(data.Id, player);
@@ -84,7 +70,7 @@ public class GameManager : MonoBehaviour
         int spriteIndex = (12 * 14);
         int animationFrames = 3;
         
-        go.GetComponent<SpriteRenderer>().sprite = Instance.SpriteArray[spriteIndex + (animationFrames*1)];
+        go.GetComponent<SpriteRenderer>().sprite = SpriteArray[spriteIndex + (animationFrames*1)];
     
         transform.localPosition = new Vector3(15, 15, 0);
     }
@@ -96,6 +82,31 @@ public class GameManager : MonoBehaviour
         {
             Destroy(player.Prefab);
             players.Remove(id);
+        }
+    }
+
+    private void onMessage(object sender, MessageReceivedEventArgs args)
+    {
+        using (Message message = args.GetMessage())
+        {
+            switch ((NetworkingData.Tags) message.Tag)
+            {
+                case NetworkingData.Tags.GameStartData:
+                    Debug.Log("Got game start data.");
+                    OnGameStart(message.Deserialize<NetworkingData.GameStartData>());
+                    break;
+                case NetworkingData.Tags.GameUpdate:
+                    worldUpdateBuffer.Enqueue(message.Deserialize<NetworkingData.GameUpdateData>());
+                    break;
+                case NetworkingData.Tags.PlayerSpawn:
+                    Debug.Log("Got player spawn data.");
+                    SpawnPlayer(message.Deserialize<NetworkingData.PlayerSpawnData>());
+                    break;
+                case NetworkingData.Tags.PlayerDeSpawn:
+                    Debug.Log("Got player despawn data.");
+                    DespawnPlayer(message.Deserialize<NetworkingData.PlayerDespawnData>().Id);
+                    break;
+            }
         }
     }
 
@@ -210,8 +221,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnDisable()
+    public void OnDestroy()
     {
+        ConnectionManager.Instance.Client.MessageReceived -= onMessage;
         players.Clear();
         worldUpdateBuffer.Clear();
     }

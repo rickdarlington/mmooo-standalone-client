@@ -18,9 +18,7 @@ public class ConnectionManager : MonoBehaviour
     private static ConnectionManager _instance;
 
     public UnityClient Client { get; private set; }
-    public delegate void OnConnectedDelegate();
-    public event OnConnectedDelegate OnConnected;
-    
+
     private int retrySeconds = 0;
     private static int backoffSeconds = 5;
     
@@ -64,7 +62,7 @@ public class ConnectionManager : MonoBehaviour
     {
         if (Client.ConnectionState == ConnectionState.Connected)
         {
-            backoffSeconds = 0;
+            retrySeconds = 0;
             StopCoroutine(ConnectCoroutine());
             loginManager.ShowLogin();
             Client.MessageReceived += onMessage;
@@ -85,7 +83,7 @@ public class ConnectionManager : MonoBehaviour
     private void DisconnectCallback(object o, DisconnectedEventArgs args)
     {
         Debug.Log("Server disconnected.");
-        loginManager.LoadLogin();
+        LoginManager.LoadLogin();
         TryConnect();
     }
     
@@ -95,21 +93,6 @@ public class ConnectionManager : MonoBehaviour
         {
             switch ((NetworkingData.Tags) message.Tag)
             {
-                case NetworkingData.Tags.GameStartData:
-                    Debug.Log("Got game start data.");
-                    //OnGameStart(message.Deserialize<NetworkingData.GameStartData>());
-                    break;
-                case NetworkingData.Tags.GameUpdate:
-                    //worldUpdateBuffer.Enqueue(message.Deserialize<NetworkingData.GameUpdateData>());
-                    break;
-                case NetworkingData.Tags.PlayerSpawn:
-                    Debug.Log("Got player spawn data.");
-                    //SpawnPlayer(message.Deserialize<NetworkingData.PlayerSpawnData>());
-                    break;
-                case NetworkingData.Tags.PlayerDeSpawn:
-                    Debug.Log("Got player despawn data.");
-                    //DespawnPlayer(message.Deserialize<NetworkingData.PlayerDespawnData>().Id);
-                    break;
                 case NetworkingData.Tags.LoginRequestDenied:
                     OnLoginDeclined();
                     break;
@@ -132,7 +115,7 @@ public class ConnectionManager : MonoBehaviour
     private void OnLoginAccepted(NetworkingData.LoginInfoData data)
     {
         Debug.Log($"Login success, clientId = {data.Id}");
-        
+        Client.MessageReceived -= onMessage;
         PlayerId = data.Id;
         SceneManager.LoadScene("Game", LoadSceneMode.Single);
     }
