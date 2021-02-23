@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using DarkRift;
 using DarkRift.Client;
 using UnityEngine;
@@ -14,46 +16,18 @@ public class LoginManager : MonoBehaviour
 
     void Start()
     {
-        ConnectionManager.Instance.OnConnected += StartLoginProcess;
         submitLoginButton.onClick.AddListener(OnSubmitLogin);
-        ConnectionManager.Instance.Client.MessageReceived += OnMessage;
-
         loginWindow.SetActive(false);
     }
 
-    void OnDestroy()
-    {
-        ConnectionManager.Instance.OnConnected -= StartLoginProcess;
-        ConnectionManager.Instance.Client.MessageReceived -= OnMessage;
-    }
-
-    public void StartLoginProcess()
+    public void ShowLogin()
     {
         loginWindow.SetActive(true);
     }
 
-    private void OnMessage(object sender, MessageReceivedEventArgs e)
+    public void HideLogin()
     {
-        using (Message message = e.GetMessage())
-        {
-            Debug.Log($"message: {message.Tag}");
-            switch ((NetworkingData.Tags) message.Tag)
-            {
-                case NetworkingData.Tags.LoginRequestDenied:
-                    OnLoginDecline();
-                    break;
-                case NetworkingData.Tags.LoginRequestAccepted:
-                    //ConnectionManager.Instance.Client.MessageReceived += OnMessage;
-                    OnLoginAccept(message.Deserialize<NetworkingData.LoginInfoData>());
-                    break;
-                case NetworkingData.Tags.PlayerSpawn:
-                    //TODO we shouldn't get this here.  server is sending early, disregard for now
-                    break;
-                default:
-                    Debug.Log($"Unhandled tag in LoginManager.OnMessage: {message.Tag}");
-                    break;
-            }
-        }
+        loginWindow.SetActive(false);
     }
 
     public void OnSubmitLogin()
@@ -71,19 +45,16 @@ public class LoginManager : MonoBehaviour
             }
         }
     }
-
-    private void OnLoginDecline()
+    
+    public IEnumerator LoadLogin()
     {
-        //TODO show a "login failed" message
-        loginWindow.SetActive(true);
-    }
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Login");
 
-    private void OnLoginAccept(NetworkingData.LoginInfoData data)
-    {
-        ConnectionManager.Instance.Client.MessageReceived -= OnMessage;
-        Debug.Log($"Login success, clientId = {data.Id}");
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
         
-        ConnectionManager.Instance.PlayerId = data.Id;
-        SceneManager.LoadScene("Game", LoadSceneMode.Single);
+        Debug.Log("login loaded");
     }
 }

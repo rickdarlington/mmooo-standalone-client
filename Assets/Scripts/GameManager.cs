@@ -44,38 +44,10 @@ public class GameManager : MonoBehaviour
         //TODO need resources load strategy when this gets larger
         SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
         
-        ConnectionManager.Instance.Client.MessageReceived += onMessage;
-            
         using (Message message = Message.Create((ushort)NetworkingData.Tags.PlayerReady, new NetworkingData.PlayerReadyData(true)))
         {
             ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
             Debug.Log("Ready message sent.");
-        }
-    }
-
-    void onMessage(object sender, MessageReceivedEventArgs args)
-    {
-        using (Message message = args.GetMessage())
-        {
-            switch ((NetworkingData.Tags) message.Tag)
-            {
-                case NetworkingData.Tags.GameStartData:
-                    Debug.Log("Got game start data.");
-                    OnGameStart(message.Deserialize<NetworkingData.GameStartData>());
-                    break;
-                case NetworkingData.Tags.GameUpdate:
-                    worldUpdateBuffer.Enqueue(message.Deserialize<NetworkingData.GameUpdateData>());
-                    break;
-                case NetworkingData.Tags.PlayerSpawn:
-                    SpawnPlayer(message.Deserialize<NetworkingData.PlayerSpawnData>());
-                    break;
-                case NetworkingData.Tags.PlayerDeSpawn:
-                    DespawnPlayer(message.Deserialize<NetworkingData.PlayerDespawnData>().Id);
-                    break;
-                default:
-                    Debug.Log($"Unhandled tag: {message.Tag}");
-                    break;
-            }
         }
     }
 

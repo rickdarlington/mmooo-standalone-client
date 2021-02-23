@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ContentModelStore">
     <e p="$USER_HOME$/.Rider2019.1/system/extResources" t="IncludeRecursive" />
-    <e p="$USER_HOME$/.Rider2019.1/system/resharper-host/local/Transient/ReSharperHost/v191/SolutionCaches/_mmooo.200556562.00" t="ExcludeRecursive" />
+    <e p="$USER_HOME$/.Rider2019.1/system/resharper-host/local/Transient/ReSharperHost/v191/SolutionCaches/_mmooo.-575498376.00" t="ExcludeRecursive" />
     <e p="$PROJECT_DIR$" t="IncludeRecursive">
       <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
@@ -41,11 +41,62 @@
           <e p="ConnectionManager.cs" t="Include" />
           <e p="GameManager.cs" t="Include" />
           <e p="LoginManager.cs" t="Include" />
-          <e p="PlayerInterpolation.cs" t="Include" />
           <e p="Shared" t="Include">
-            <e p="Buffer.cs" t="Include" />
             <e p="NetworkingData.cs" t="Include" />
-            <e p="PlayerLogic.cs" t="Include" />
+            <e p="PlayerMovement.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Terrainify2D" t="Include">
+          <e p="Scripts" t="Include">
+            <e p="Camera" t="Include">
+              <e p="SimpleCameraMovement.cs" t="Include" />
+            </e>
+            <e p="Chunks" t="Include">
+              <e p="Chunk.cs" t="Include" />
+            </e>
+            <e p="Managers" t="Include">
+              <e p="ChunkLoadManager.cs" t="Include" />
+              <e p="GenerationManager.cs" t="Include" />
+              <e p="Singleton.cs" t="Include" />
+            </e>
+            <e p="User Interface" t="Include">
+              <e p="GridItem.cs" t="Include" />
+              <e p="SliderData.cs" t="Include" />
+              <e p="SliderDataCustomizer.cs" t="Include" />
+              <e p="SliderObject.cs" t="Include" />
+              <e p="UserInterface.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="TextMesh Pro" t="Include">
+          <e p="Fonts" t="Include">
+            <e p="LiberationSans - OFL.txt" t="Include" />
+          </e>
+          <e p="Resources" t="Include">
+            <e p="LineBreaking Following Characters.txt" t="Include" />
+            <e p="LineBreaking Leading Characters.txt" t="Include" />
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="TMP_Bitmap-Custom-Atlas.shader" t="Include" />
+            <e p="TMP_Bitmap-Mobile.shader" t="Include" />
+            <e p="TMP_Bitmap.shader" t="Include" />
+            <e p="TMP_SDF Overlay.shader" t="Include" />
+            <e p="TMP_SDF SSD.shader" t="Include" />
+            <e p="TMP_SDF-Mobile Masking.shader" t="Include" />
+            <e p="TMP_SDF-Mobile Overlay.shader" t="Include" />
+            <e p="TMP_SDF-Mobile SSD.shader" t="Include" />
+            <e p="TMP_SDF-Mobile.shader" t="Include" />
+            <e p="TMP_SDF-Surface-Mobile.shader" t="Include" />
+            <e p="TMP_SDF-Surface.shader" t="Include" />
+            <e p="TMP_SDF.shader" t="Include" />
+            <e p="TMP_Sprite.shader" t="Include" />
+            <e p="TMPro.cginc" t="Include" />
+            <e p="TMPro_Mobile.cginc" t="Include" />
+            <e p="TMPro_Properties.cginc" t="Include" />
+            <e p="TMPro_Surface.cginc" t="Include" />
+          </e>
+          <e p="Sprites" t="Include">
+            <e p="EmojiOne Attribution.txt" t="Include" />
           </e>
         </e>
       </e>
