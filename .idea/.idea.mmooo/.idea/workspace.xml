@@ -92,12 +92,12 @@
             <state relative-caret-position="90">
               <caret line="7" column="45" selection-start-line="7" selection-start-column="45" selection-end-line="7" selection-end-column="45" />
               <folding>
-                <marker date="1614189678750" expanded="false" signature="6:63" ph="..." />
-                <marker date="1614189678750" expanded="true" signature="93:1151" ph="{...}" />
-                <marker date="1614189678750" expanded="true" signature="134:1149" ph="{...}" />
-                <marker date="1614189678750" expanded="true" signature="301:1143" ph="{...}" />
-                <marker date="1614189678750" expanded="true" signature="467:528" ph="{...}" />
-                <marker date="1614189678750" expanded="true" signature="833:1040" ph="{...}" />
+                <marker date="1614192499385" expanded="false" signature="6:63" ph="..." />
+                <marker date="1614192499385" expanded="true" signature="93:1151" ph="{...}" />
+                <marker date="1614192499385" expanded="true" signature="134:1149" ph="{...}" />
+                <marker date="1614192499385" expanded="true" signature="301:1143" ph="{...}" />
+                <marker date="1614192499385" expanded="true" signature="467:528" ph="{...}" />
+                <marker date="1614192499385" expanded="true" signature="833:1040" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -347,7 +347,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="27" width="1720" height="1413" extended-state="4" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19414575" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -661,12 +660,12 @@
         <state relative-caret-position="90">
           <caret line="7" column="45" selection-start-line="7" selection-start-column="45" selection-end-line="7" selection-end-column="45" />
           <folding>
-            <marker date="1614189678750" expanded="false" signature="6:63" ph="..." />
-            <marker date="1614189678750" expanded="true" signature="93:1151" ph="{...}" />
-            <marker date="1614189678750" expanded="true" signature="134:1149" ph="{...}" />
-            <marker date="1614189678750" expanded="true" signature="301:1143" ph="{...}" />
-            <marker date="1614189678750" expanded="true" signature="467:528" ph="{...}" />
-            <marker date="1614189678750" expanded="true" signature="833:1040" ph="{...}" />
+            <marker date="1614192499385" expanded="false" signature="6:63" ph="..." />
+            <marker date="1614192499385" expanded="true" signature="93:1151" ph="{...}" />
+            <marker date="1614192499385" expanded="true" signature="134:1149" ph="{...}" />
+            <marker date="1614192499385" expanded="true" signature="301:1143" ph="{...}" />
+            <marker date="1614192499385" expanded="true" signature="467:528" ph="{...}" />
+            <marker date="1614192499385" expanded="true" signature="833:1040" ph="{...}" />
           </folding>
         </state>
       </provider>
