@@ -29,6 +29,9 @@ public class ClientPlayer : MonoBehaviour
     private ushort DefaultLookDirection = 1;
 
     public Sprite[] SpriteArray;
+
+    private static float MAX_CAMERA = 12;
+    private static float MIN_CAMERA = 4;
     
     public void Initialize(ushort id, string name, byte spriteRow, float x, float y, GameObject prefab)
     {
@@ -60,6 +63,16 @@ public class ClientPlayer : MonoBehaviour
 
     public void Update()
     {
+        float scrollAmt = Input.mouseScrollDelta.y;
+        if (scrollAmt != 0)
+        {
+            float newSize = Camera.main.orthographicSize - scrollAmt;
+            if (MIN_CAMERA <= newSize && newSize <= MAX_CAMERA)
+            {
+                Camera.main.orthographicSize = newSize;
+            }
+         }
+
         //LookDirection is 0: right, 1: down, 2: left, 3: up
         //animation frames is # frames for walk animation
         if (isOwn)

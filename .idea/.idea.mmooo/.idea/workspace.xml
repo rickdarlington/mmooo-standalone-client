@@ -61,43 +61,28 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Assets/Scripts/ClientPlayer.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="48" column="57" selection-start-line="48" selection-start-column="57" selection-end-line="48" selection-end-column="57" />
+            <state relative-caret-position="477">
+              <caret line="69" column="26" selection-start-line="69" selection-start-column="26" selection-end-line="69" selection-end-column="26" />
               <folding>
-                <marker date="1614111583898" expanded="false" signature="6:150" ph="..." />
-                <marker date="1614111583898" expanded="true" signature="193:4404" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="270:478" ph="/* for batching inputs at 30hz instead of the 60hz fixedupdate rate. ... */" />
-                <marker date="1614111583898" expanded="true" signature="631:827" ph="/* saved inputs for reconciliation (connected player only) ... */" />
-                <marker date="1614111583898" expanded="true" signature="1412:1954" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="1606:1800" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="2006:2195" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="2221:3717" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="2236:2346" ph="/* LookDirection is 0: right, 1: down, 2: left, 3: up ... */" />
-                <marker date="1614111583898" expanded="true" signature="2365:3711" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="3091:3701" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="3748:4402" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="3916:3984" ph="{...}" />
-                <marker date="1614111583898" expanded="true" signature="4130:4396" ph="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Assets/Scripts/Shared/PlayerMovement.cs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="7" column="45" selection-start-line="7" selection-start-column="45" selection-end-line="7" selection-end-column="45" />
-              <folding>
-                <marker date="1614192499385" expanded="false" signature="6:63" ph="..." />
-                <marker date="1614192499385" expanded="true" signature="93:1151" ph="{...}" />
-                <marker date="1614192499385" expanded="true" signature="134:1149" ph="{...}" />
-                <marker date="1614192499385" expanded="true" signature="301:1143" ph="{...}" />
-                <marker date="1614192499385" expanded="true" signature="467:528" ph="{...}" />
-                <marker date="1614192499385" expanded="true" signature="833:1040" ph="{...}" />
+                <marker date="1614197023111" expanded="false" signature="6:150" ph="..." />
+                <marker date="1614197023111" expanded="true" signature="193:4849" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="270:478" ph="/* for batching inputs at 30hz instead of the 60hz fixedupdate rate. ... */" />
+                <marker date="1614197023111" expanded="true" signature="631:827" ph="/* saved inputs for reconciliation (connected player only) ... */" />
+                <marker date="1614197023111" expanded="true" signature="1496:2038" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="1690:1884" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="2090:2279" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="2305:4162" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="2391:2671" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="2535:2660" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="2681:2791" ph="/* LookDirection is 0: right, 1: down, 2: left, 3: up ... */" />
+                <marker date="1614197023111" expanded="true" signature="2810:4156" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="3536:4146" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="4193:4847" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="4361:4429" ph="{...}" />
+                <marker date="1614197023111" expanded="true" signature="4575:4841" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -222,10 +207,10 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/Shared/PlayerLogic.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/NetworkManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/GameManager.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/ClientPlayer.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/LoginManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/ConnectionManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Shared/PlayerMovement.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/ClientPlayer.cs" />
       </list>
     </option>
   </component>
@@ -334,7 +319,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="78735000" />
+    <option name="totallyTimeSpent" value="80995000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -347,6 +332,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="27" width="1720" height="1413" extended-state="4" />
+    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19414575" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -632,33 +618,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Assets/Scripts/ClientPlayer.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="48" column="57" selection-start-line="48" selection-start-column="57" selection-end-line="48" selection-end-column="57" />
-          <folding>
-            <marker date="1614111583898" expanded="false" signature="6:150" ph="..." />
-            <marker date="1614111583898" expanded="true" signature="193:4404" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="270:478" ph="/* for batching inputs at 30hz instead of the 60hz fixedupdate rate. ... */" />
-            <marker date="1614111583898" expanded="true" signature="631:827" ph="/* saved inputs for reconciliation (connected player only) ... */" />
-            <marker date="1614111583898" expanded="true" signature="1412:1954" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="1606:1800" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="2006:2195" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="2221:3717" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="2236:2346" ph="/* LookDirection is 0: right, 1: down, 2: left, 3: up ... */" />
-            <marker date="1614111583898" expanded="true" signature="2365:3711" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="3091:3701" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="3748:4402" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="3916:3984" ph="{...}" />
-            <marker date="1614111583898" expanded="true" signature="4130:4396" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Assets/Scripts/Shared/PlayerMovement.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="7" column="45" selection-start-line="7" selection-start-column="45" selection-end-line="7" selection-end-column="45" />
+        <state relative-caret-position="270">
+          <caret line="19" column="40" selection-start-line="19" selection-start-column="40" selection-end-line="19" selection-end-column="40" />
           <folding>
             <marker date="1614192499385" expanded="false" signature="6:63" ph="..." />
             <marker date="1614192499385" expanded="true" signature="93:1151" ph="{...}" />
@@ -666,6 +629,31 @@
             <marker date="1614192499385" expanded="true" signature="301:1143" ph="{...}" />
             <marker date="1614192499385" expanded="true" signature="467:528" ph="{...}" />
             <marker date="1614192499385" expanded="true" signature="833:1040" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Assets/Scripts/ClientPlayer.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="477">
+          <caret line="69" column="26" selection-start-line="69" selection-start-column="26" selection-end-line="69" selection-end-column="26" />
+          <folding>
+            <marker date="1614197023111" expanded="false" signature="6:150" ph="..." />
+            <marker date="1614197023111" expanded="true" signature="193:4849" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="270:478" ph="/* for batching inputs at 30hz instead of the 60hz fixedupdate rate. ... */" />
+            <marker date="1614197023111" expanded="true" signature="631:827" ph="/* saved inputs for reconciliation (connected player only) ... */" />
+            <marker date="1614197023111" expanded="true" signature="1496:2038" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="1690:1884" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="2090:2279" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="2305:4162" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="2391:2671" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="2535:2660" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="2681:2791" ph="/* LookDirection is 0: right, 1: down, 2: left, 3: up ... */" />
+            <marker date="1614197023111" expanded="true" signature="2810:4156" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="3536:4146" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="4193:4847" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="4361:4429" ph="{...}" />
+            <marker date="1614197023111" expanded="true" signature="4575:4841" ph="{...}" />
           </folding>
         </state>
       </provider>
