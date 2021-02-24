@@ -36,6 +36,9 @@
           </e>
           <e p="ReadMe.txt" t="Include" />
         </e>
+        <e p="Pixel Font - Tripfive" t="Include">
+          <e p="_README.txt" t="Include" />
+        </e>
         <e p="Scripts" t="Include">
           <e p="ClientPlayer.cs" t="Include" />
           <e p="ConnectionManager.cs" t="Include" />
