@@ -114,7 +114,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4b62a59ccf4c5c2096752898e893b2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: 
   isOwn: 0
-  id: 0
-  Prefab: {fileID: 0}
+  ID: 0
+  console: {fileID: 0}
   spriteRowIndex: 0
+  Prefab: {fileID: 0}
+  SpriteArray: []

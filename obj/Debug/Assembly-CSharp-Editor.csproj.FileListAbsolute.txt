@@ -798,3 +798,5 @@
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp-Editor.csproj.CopyComplete
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp-Editor.dll
 /home/rickd/code/mmooo/mmooo-standalone-client/obj/Debug/Assembly-CSharp-Editor.pdb
+/home/rickd/code/mmooo/mmooo-standalone-client/Temp/bin/Debug/UnityEngine.WebGLModule.dll
+/home/rickd/code/mmooo/mmooo-standalone-client/Temp/bin/Debug/UnityEngine.WebGLModule.pdb

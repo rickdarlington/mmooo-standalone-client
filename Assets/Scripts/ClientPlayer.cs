@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
+using DefaultNamespace;
 using MmoooPlugin.Shared;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
@@ -40,6 +41,7 @@ public class ClientPlayer : MonoBehaviour
         Prefab = prefab;
         transform.localPosition = new Vector3(x, y, 0);
         
+        
         if (ConnectionManager.Instance.PlayerId == id)
         {
             Debug.Log($"Initializing our player {this.name} with client id ({id})");
@@ -63,20 +65,28 @@ public class ClientPlayer : MonoBehaviour
 
     public void Update()
     {
-        float scrollAmt = Input.mouseScrollDelta.y;
-        if (scrollAmt != 0)
-        {
-            float newSize = Camera.main.orthographicSize - scrollAmt;
-            if (MIN_CAMERA <= newSize && newSize <= MAX_CAMERA)
-            {
-                Camera.main.orthographicSize = newSize;
-            }
-         }
-
-        //LookDirection is 0: right, 1: down, 2: left, 3: up
-        //animation frames is # frames for walk animation
+        
         if (isOwn)
         {
+            //stuff starting here doesn't need to get synced to the server
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+               ConsoleUtils.getInstance().toggle();
+            }
+        
+            float scrollAmt = Input.mouseScrollDelta.y;
+            if (scrollAmt != 0)
+            {
+                float newSize = Camera.main.orthographicSize - scrollAmt*2;
+                if (MIN_CAMERA <= newSize && newSize <= MAX_CAMERA)
+                {
+                    Camera.main.orthographicSize = newSize;
+                }
+            }
+
+            //everything below this point needs to get synced to the server
+            //LookDirection is 0: right, 1: down, 2: left, 3: up
+            //animation frames is # frames for walk animation
             bool[] inputs = new bool[5];
             inputs[0] = Input.GetKey(KeyCode.W);
             inputs[1] = Input.GetKey(KeyCode.A);

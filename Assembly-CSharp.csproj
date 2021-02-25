@@ -66,6 +66,7 @@
      <Compile Include="Assets\DarkRift\DarkRift\Plugins\Server\XmlUnityServer.cs" />
      <Compile Include="Assets\Scripts\ClientPlayer.cs" />
      <Compile Include="Assets\Scripts\ConnectionManager.cs" />
+     <Compile Include="Assets\Scripts\ConsoleUtils.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\LoginManager.cs" />
      <Compile Include="Assets\Scripts\Shared\NetworkingData.cs" />

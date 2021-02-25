@@ -18,6 +18,7 @@ public class LoginManager : MonoBehaviour
     {
         DontDestroyOnLoad(this);
 
+        
         submitLoginButton.onClick.AddListener(OnSubmitLogin);
         loginWindow.SetActive(false);
     }
@@ -35,23 +36,17 @@ public class LoginManager : MonoBehaviour
     public void OnSubmitLogin()
     {
         Debug.Log("Login submitted.");
-        
+
         if (!String.IsNullOrEmpty(nameInput.text))
         {
             loginWindow.SetActive(false);
-            
-            using (Message message = Message.Create((ushort)NetworkingData.Tags.LoginRequest, new NetworkingData.LoginRequestData(nameInput.text)))
+
+            using (Message message = Message.Create((ushort) NetworkingData.Tags.LoginRequest,
+                new NetworkingData.LoginRequestData(nameInput.text)))
             {
                 ConnectionManager.Instance.Client.SendMessage(message, SendMode.Reliable);
                 Debug.Log("Login message sent.");
             }
         }
-    }
-    
-    public static void LoadLogin()
-    {
-        SceneManager.LoadScene("Login");
-        
-        Debug.Log("login loaded");
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using DarkRift;
-using DarkRift.Client.Unity;
+using DefaultNamespace;
 using MmoooPlugin.Shared;
 using UnityEngine;
 using MessageReceivedEventArgs = DarkRift.Client.MessageReceivedEventArgs;
@@ -9,6 +9,7 @@ using Vector2 = System.Numerics.Vector2;
 public class GameManager : MonoBehaviour
 {
     public Dictionary<ushort, ClientPlayer> players = new Dictionary<ushort, ClientPlayer>();
+    public ClientPlayer myPlayer;
     
     public Queue<NetworkingData.GameUpdateData> worldUpdateBuffer = new Queue<NetworkingData.GameUpdateData>();
 
@@ -20,11 +21,12 @@ public class GameManager : MonoBehaviour
     public uint LastReceivedServerTick { get; private set; }
 
     private long serverUpdateRateMs = 100;
-
+    
     void Awake()
     {
         //TODO need resources load strategy when this gets larger
         SpriteArray = Resources.LoadAll<Sprite>("player_sprites");
+        DontDestroyOnLoad(GameObject.Find("ConsoleCanvas"));
     }
 
     void Start()
@@ -58,6 +60,10 @@ public class GameManager : MonoBehaviour
         player.SpriteArray = SpriteArray;
         player.Prefab = go;
         player.Initialize(data.Id, data.Name, data.SpriteRowIndex, data.Position.X, data.Position.Y, go);
+        if(player.isOwn)
+        {
+            myPlayer = player;
+        }
         players.Add(data.Id, player);
         Debug.Log($"Spawn player {data.Name} at [{data.Position.X}, {data.Position.Y}]");
     }
